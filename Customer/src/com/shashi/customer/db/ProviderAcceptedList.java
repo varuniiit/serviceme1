@@ -4,7 +4,7 @@ import com.j256.ormlite.field.DatabaseField;
 
 public class ProviderAcceptedList {
 
-	@DatabaseField(canBeNull = false)
+	@DatabaseField(canBeNull = false, generatedId = true)
 	int id;
 	@DatabaseField(canBeNull = true)
 	String providerName;
