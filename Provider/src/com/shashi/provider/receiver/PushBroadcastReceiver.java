@@ -101,7 +101,7 @@ public class PushBroadcastReceiver extends ParsePushBroadcastReceiver {
 		PendingIntent pendingIntent = PendingIntent.getActivity(context, 9,
 				emptyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-				context).setSmallIcon(R.drawable.ic_launcher)
+				context).setSmallIcon(R.drawable.ic_launche)
 				.setContentTitle(title)
 				.setContentText(first + ".\n" + last + ".")
 				.setContentIntent(pendingIntent);

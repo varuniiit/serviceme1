@@ -172,7 +172,7 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 		final EditText editText = (EditText) view.findViewById(R.id.editText1);
 		AlertDialog.Builder builder = new AlertDialog.Builder(this)
 				.setTitle("Provider Name")
-				.setIcon(R.drawable.ic_launcher)
+				.setIcon(R.drawable.ic_launche)
 				.setView(view)
 				.setPositiveButton("Okay",
 						new DialogInterface.OnClickListener() {
