@@ -13,12 +13,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CheckedTextView;
 import android.widget.EditText;
 import android.widget.ListView;
 
@@ -39,6 +43,8 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 	static DataBaseHelper dataBaseHelper;
 	static List<ProviderDatabase> list;
 	List<Integer> checkedStatus;
+	List<Integer> selectedItems = new ArrayList<Integer>();
+	boolean isClearClicked = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -116,17 +122,29 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View view, int position,
 			long arg3) {
-		CheckBox checkBox = (CheckBox) view.findViewById(R.id.check);
-		if (list.get(position).getProviderAcceptedStatus()
-				.equalsIgnoreCase("false")) {
-			if (checkBox.isChecked()) {
-				checkBox.setChecked(false);
-				checkedStatus.remove((Integer) position);
+		if (!isClearClicked) {
+			CheckBox checkBox = (CheckBox) view.findViewById(R.id.check);
+			if (list.get(position).getProviderAcceptedStatus()
+					.equalsIgnoreCase("false")) {
+				if (checkBox.isChecked()) {
+					checkBox.setChecked(false);
+					checkedStatus.remove((Integer) position);
+				} else {
+					checkedStatus.add(position);
+					checkBox.setChecked(true);
+				}
+			}
+		} else {
+			CheckedTextView checkedTextView = (CheckedTextView) view;
+			if (checkedTextView.isChecked()) {
+				checkedTextView.setChecked(true);
+				selectedItems.add((Integer) position);
 			} else {
-				checkedStatus.add(position);
-				checkBox.setChecked(true);
+				checkedTextView.setChecked(false);
+				selectedItems.remove((Integer) position);
 			}
 		}
+
 	}
 
 	public void sendPushNotification(ProviderDatabase database) {
@@ -186,6 +204,43 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 		builder.create();
 		builder.setCancelable(false);
 		builder.show();
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		getMenuInflater().inflate(R.menu.customer_accept, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		if (item.getTitle().toString().equals("Clear")) {
+			selectedItems.clear();
+			isClearClicked = true;
+			item.setTitle("Delete");
+			listView.setOnItemClickListener(this);
+			ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+					android.R.layout.simple_list_item_checked);
+			for (ProviderDatabase provider : list) {
+				adapter.add(provider.getCustomerName() + "\n"
+						+ provider.getTimeToService());
+			}
+			listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+			listView.setAdapter(adapter);
+			return true;
+		} else if (item.getTitle().toString().equals("Delete")) {
+			isClearClicked = false;
+			for (Integer i : selectedItems) {
+				System.out.println("Index " + i);
+				dataBaseHelper.delete(list.get(i));
+			}
+			updateListView();
+			item.setTitle("Clear");
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 }

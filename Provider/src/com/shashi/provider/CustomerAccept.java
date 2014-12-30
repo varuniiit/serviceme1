@@ -1,5 +1,6 @@
 package com.shashi.provider;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.os.Bundle;
@@ -16,6 +17,7 @@ public class CustomerAccept extends ActionBarActivity {
 	static CustomerAcceptAdapter adapter;
 	static DataBaseHelper dataBaseHelper;
 	static List<ProviderDatabase> list;
+	List<Integer> selectedItems = new ArrayList<Integer>();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +25,7 @@ public class CustomerAccept extends ActionBarActivity {
 		setContentView(R.layout.activity_customer_accept);
 		listView = (ListView) findViewById(R.id.customeracceptlist);
 		dataBaseHelper = new DataBaseHelper(this);
+
 	}
 
 	@Override

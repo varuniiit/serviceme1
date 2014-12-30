@@ -10,6 +10,7 @@ import android.util.Log;
 
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
+import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
 import com.j256.ormlite.support.ConnectionSource;
@@ -129,7 +130,7 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
 		}
 		return list;
 	}
-	
+
 	public List<ProviderDatabase> getCustomerByRequestId(String requestId) {
 		RuntimeExceptionDao<ProviderDatabase, Integer> dao = getSimpleDataDao();
 		QueryBuilder<ProviderDatabase, Integer> queryBuilder = dao
@@ -143,6 +144,20 @@ public class DataBaseHelper extends OrmLiteSqliteOpenHelper {
 			e.printStackTrace();
 		}
 		return list;
+	}
+
+	public void delete(ProviderDatabase database) {
+		RuntimeExceptionDao<ProviderDatabase, Integer> dao = getSimpleDataDao();
+		DeleteBuilder<ProviderDatabase, Integer> deleteBuilder = dao
+				.deleteBuilder();
+		try {
+			deleteBuilder.where().eq("id", database.getId());
+			deleteBuilder.delete();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
 	}
 
 	public void updateProviderStatus(ProviderDatabase database) {
