@@ -17,8 +17,8 @@ public class GlobalApplication extends Application {
 	public void onCreate() {
 		// TODO Auto-generated method stub
 		super.onCreate();
-		Parse.initialize(this, "VohYl19On2ZdUPmbIa8i85hxFOgbRQIyNnAYPU9z",
-				"2BoZ0xM4Loo63jtMapBzsOud5WeOilrnfQNoCzH4");
+		Parse.initialize(this, "pwuBEQ600d8CL0v8vu6GuVkndT2zgYee0odYktmQ",
+				"hZtz11BGcEwLofUZuKo1fVEN6emhE58tsoDp8OeR");
 		PushService.setDefaultPushCallback(this, MainActivity.class);
 		ParseUser.enableAutomaticUser();
 		ParseACL defaultACL = new ParseACL();
