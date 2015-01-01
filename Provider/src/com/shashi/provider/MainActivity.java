@@ -25,6 +25,7 @@ import android.widget.CheckBox;
 import android.widget.CheckedTextView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.parse.ParseInstallation;
 import com.parse.ParseObject;
@@ -51,7 +52,9 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		isAppOpend = true;
-		listView = (ListView) findViewById(R.id.listView1);
+		listView = (ListView) findViewById(android.R.id.list);
+		TextView textView = (TextView) findViewById(android.R.id.empty);
+		listView.setEmptyView(textView);
 		listView.setOnItemClickListener(this);
 		button = (Button) findViewById(R.id.button1);
 		button.setOnClickListener(this);
@@ -154,7 +157,9 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 			query.whereEqualTo("installationId", database.getInstallationId());
 			parsePush.setQuery(query);
 			JSONObject jsonObject = new JSONObject();
-			jsonObject.put("providername", "Jhon");
+			jsonObject.put("providername",
+					getSharedPreferences("name", Context.MODE_PRIVATE)
+							.getString("customername", null));
 			jsonObject.put("requestid", database.getRequestId());
 			jsonObject.put("messagetype", "request");
 			jsonObject.put("installationid", GlobalApplication.installationId);

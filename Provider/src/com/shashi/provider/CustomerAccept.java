@@ -6,6 +6,7 @@ import java.util.List;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.shashi.provider.adapter.CustomerAcceptAdapter;
 import com.shashi.provider.db.DataBaseHelper;
@@ -23,9 +24,10 @@ public class CustomerAccept extends ActionBarActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_customer_accept);
-		listView = (ListView) findViewById(R.id.customeracceptlist);
+		listView = (ListView) findViewById(android.R.id.list);
 		dataBaseHelper = new DataBaseHelper(this);
-
+		TextView textView = (TextView) findViewById(android.R.id.empty);
+		listView.setEmptyView(textView);
 	}
 
 	@Override

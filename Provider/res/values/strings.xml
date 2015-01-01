@@ -2,9 +2,8 @@
 <resources>
 
     <string name="name">Provider</string>
-    <string name="app_name">Provider</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="app_name">Customers Service Requests</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_customer_accept">Customer Accept</string>
+    <string name="title_activity_customer_accept">Customers Accepted</string>
 
 </resources>
