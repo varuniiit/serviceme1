@@ -7,9 +7,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
@@ -19,14 +21,20 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CheckedTextView;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParsePush;
@@ -36,7 +44,7 @@ import com.shashi.provider.db.DataBaseHelper;
 import com.shashi.provider.db.ProviderDatabase;
 
 public class MainActivity extends ActionBarActivity implements OnClickListener,
-		OnItemClickListener {
+		OnItemClickListener, OnItemSelectedListener {
 	public static boolean isAppOpend = false;
 	static ListView listView;
 	static CustomerRequest adapter;
@@ -46,6 +54,10 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 	List<Integer> checkedStatus;
 	List<Integer> selectedItems = new ArrayList<Integer>();
 	boolean isClearClicked = false;
+	String address;
+	LatLng location;
+	String service;
+	List<String> arrayList = new ArrayList<String>();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -58,14 +70,14 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 		listView.setOnItemClickListener(this);
 		button = (Button) findViewById(R.id.button1);
 		button.setOnClickListener(this);
-		listButton = (Button) findViewById(R.id.list);
+		listButton = (Button) findViewById(R.id.listCustomer);
 		listButton.setOnClickListener(this);
 		dataBaseHelper = new DataBaseHelper(this);
 		checkedStatus = new ArrayList<Integer>();
 		String name = getSharedPreferences("name", Context.MODE_PRIVATE)
 				.getString("customername", null);
 		if (name == null)
-			showDialog();
+			new Background().execute();
 	}
 
 	@Override
@@ -96,6 +108,15 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 		list = dataBaseHelper.getAllEntries();
 		adapter = new CustomerRequest(this, dataBaseHelper, list);
 		listView.setAdapter(adapter);
+		System.out.println(MapActivity.address + " ");
+		System.out.println(" " + MapActivity.finalLoc);
+		if (MapActivity.address != null) {
+			address = MapActivity.address;
+			this.locationText.setText("Address: " + MapActivity.address);
+		}
+		if (MapActivity.finalLoc != null) {
+			location = MapActivity.finalLoc;
+		}
 	}
 
 	@Override
@@ -115,9 +136,11 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 				parseObject.saveInBackground();
 				sendPushNotification(list.get(i));
 			}
-		} else if (R.id.list == v.getId()) {
+		} else if (R.id.listCustomer == v.getId()) {
 			Intent intent = new Intent(this, CustomerAccept.class);
 			startActivity(intent);
+		} else if (R.id.map == v.getId()) {
+			startActivity(new Intent(this, MapActivity.class));
 		}
 
 	}
@@ -171,10 +194,22 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 		}
 	}
 
-	private void showDialog() {
+	TextView locationText;
+
+	private void showDialog(final List<String> arrayList) {
 		LayoutInflater layoutInflater = LayoutInflater.from(this);
 		final View view = layoutInflater.inflate(R.layout.customer_name, null);
 		final EditText editText = (EditText) view.findViewById(R.id.editText1);
+		final Spinner spinner = (Spinner) view.findViewById(R.id.spinner1);
+		locationText = (TextView) view.findViewById(R.id.locationtext);
+		spinner.setOnItemSelectedListener(this);
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+				android.R.layout.simple_spinner_dropdown_item, arrayList);
+		spinner.setAdapter(adapter);
+		if (arrayList.size() > 0)
+			service = arrayList.get(0);
+		final ImageButton map = (ImageButton) view.findViewById(R.id.map);
+		map.setOnClickListener(this);
 		AlertDialog.Builder builder = new AlertDialog.Builder(this)
 				.setTitle("Provider Name")
 				.setIcon(R.drawable.ic_launche)
@@ -187,14 +222,30 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 									int which) {
 								if (editText.getText().toString().trim()
 										.length() == 0) {
-									showDialog();
+									showDialog(arrayList);
+									return;
 								}
-								getSharedPreferences("name",
-										Context.MODE_PRIVATE)
-										.edit()
-										.putString("customername",
-												editText.getText().toString())
-										.commit();
+								System.out.println(location);
+								System.out.println(address);
+								System.out.println(service);
+								if (location != null && address != null
+										&& service != null) {
+									saveInDatabase(editText.getText()
+											.toString().trim(), service);
+									Toast.makeText(MainActivity.this,
+											"Saved Succesfully.",
+											Toast.LENGTH_LONG).show();
+									getSharedPreferences("name",
+											Context.MODE_PRIVATE)
+											.edit()
+											.putString(
+													"customername",
+													editText.getText()
+															.toString())
+											.commit();
+								} else {
+									showDialog(arrayList);
+								}
 							}
 						})
 				.setNegativeButton("Exit",
@@ -246,6 +297,80 @@ public class MainActivity extends ActionBarActivity implements OnClickListener,
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	private class Background extends AsyncTask<Void, Void, List<ParseObject>> {
+
+		@Override
+		protected List<ParseObject> doInBackground(Void... params) {
+			// TODO Auto-generated method stub
+			ParseQuery<ParseObject> query = ParseQuery.getQuery("ServiceType");
+			query.whereExists("servicetype");
+			try {
+				List<ParseObject> list = query.find();
+				return list;
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPreExecute() {
+			// TODO Auto-generated method stub
+			super.onPreExecute();
+			dialog = new ProgressDialog(MainActivity.this);
+			dialog.setMessage("Loading...");
+			dialog.setCancelable(false);
+			dialog.show();
+		}
+
+		ProgressDialog dialog = null;
+
+		@Override
+		protected void onPostExecute(List<ParseObject> result) {
+			// TODO Auto-generated method stub
+			super.onPostExecute(result);
+			dialog.dismiss();
+
+			for (ParseObject parseObject : result) {
+				arrayList.add(parseObject.getString("servicetype"));
+			}
+			showDialog(arrayList);
+		}
+	}
+
+	@Override
+	public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
+			long arg3) {
+		// TODO Auto-generated method stub
+		service = arrayList.get(arg2);
+	}
+
+	@Override
+	public void onNothingSelected(AdapterView<?> arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void saveInDatabase(String providerName, String serviceType) {
+		JSONObject jsonObject = new JSONObject();
+		try {
+			jsonObject.put("address", MapActivity.address);
+			jsonObject.put("latitude", location.latitude);
+			jsonObject.put("longitude", location.longitude);
+			ParseObject parseObject;
+			parseObject = new ParseObject("ProviderDetails");
+			parseObject.add("providername", providerName);
+			parseObject.add("servicetype", serviceType);
+			parseObject.add("location", jsonObject.toString());
+			parseObject.saveInBackground();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 }
